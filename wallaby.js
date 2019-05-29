@@ -1,5 +1,6 @@
 module.exports = (wallaby) => {
   return {
+    testFramework: 'jest',
     files: ['lib/*.js'],
     tests: ['spec/*.spec.js'],
     debug: true,
@@ -9,12 +10,10 @@ module.exports = (wallaby) => {
     },
     setup: () => {
       global.expect = require('expect')
+      wallaby.testFramework.configure();
     },
     compilers: {
-      '**/*.js': wallaby.compilers.babel({
-        babel: require('babel-core'),
-        babelrc: true,
-      }),
+      '**/*.js': wallaby.compilers.babel(),
     },
   }
 }
