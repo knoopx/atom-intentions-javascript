@@ -13,7 +13,8 @@
   ],
   "env": {
     "browser": false,
-    "node": true
+    "node": true,
+    "jest/globals": true
   },
   "rules": {
     "arrow-parens": [
@@ -127,6 +128,7 @@
   },
   "plugins": [
     "import",
-    "react"
+    "react",
+    "jest"
   ]
 }

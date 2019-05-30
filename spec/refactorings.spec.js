@@ -2,19 +2,12 @@ import {
   parse,
   generate,
   getPathAtPosition,
-} from "../lib/helpers"
-
-// import {
-//   renameVariable,
-//   renameFunction,
-//   extractVariableIntoModule,
-//   extractClassIntoModule,
-//   deanonymifyClassDeclaration,
-//   statefulToStatelessComponent
-// } from '../lib/index'
-
-import statefulToStatelessComponent from "../lib/statefulToStateless"
-import extractClassIntoModule from "../lib/extractClassIntoModule"
+  renameIdentifier,
+  extractVariableIntoModule,
+  extractClassIntoModule,
+  deanonymifyClassDeclaration,
+  statefulToStateless,
+} from "../lib/refactorings"
 
 describe("refactorings", () => {
   it("extractVariableIntoModule", async (done) => {
@@ -31,9 +24,9 @@ describe("refactorings", () => {
       (name) => `./${name}.js`,
     )
 
-    expect(generate(ast, code)).toEqual('import xxx from "./xxx.js";\n')
+    expect(generate(ast, code)).toEqual('import xxx from "./xxx.js"\n')
     expect(generate(moduleAst, code)).toEqual(
-      "const xxx = 1;\nexport default xxx;\n",
+      "const xxx = 1\nexport default xxx\n",
     )
     done()
   })
@@ -62,17 +55,17 @@ export default () => <Y/>
       (name) => `./${name}.js`,
     )
 
-    expect(generate(ast, code)).toEqual(`import X from \"./X.js\";
+    expect(generate(ast, code)).toEqual(`import X from "./X.js"
 
-export default () => <Y />;
+export default () => <Y />
 `)
-    expect(generate(moduleAst, code)).toEqual(`import React from \"react\";
+    expect(generate(moduleAst, code)).toEqual(`import React from "react"
 class X extends React.PureComponent {
   render() {
-    return <div />;
+    return <div />
   }
 }
-export default X;
+export default X
 `)
     done()
   })
@@ -88,45 +81,153 @@ export default X;
     })
   })
 
-  describe("renameVariable", () => {
+  describe("renameIdentifier", () => {
     it("renames variable declarations", () => {
-      const code = "const xxx = 1"
+      const code = "const xxx = 1\nconsole.log(xxx)"
       const ast = parse(code)
       const path = getPathAtPosition(ast, { row: 0, column: 8 })
+      const identifierPath = path.find((p) => p.isIdentifier())
 
-      renameVariable(path, "yyy")
-      expect(generate(ast, code)).toEqual("const yyy = 1;\n")
+      renameIdentifier(identifierPath, "yyy")
+      expect(generate(ast, code)).toEqual("const yyy = 1\nconsole.log(yyy)\n")
     })
 
     it("renames local variable declarations", () => {
       const code = "function func(xxx) { return xxx }"
       const ast = parse(code)
       const path = getPathAtPosition(ast, { row: 0, column: 15 })
+      const identifierPath = path.find((p) => p.isIdentifier())
 
-      renameVariable(path, "yyy")
+      renameIdentifier(identifierPath, "yyy")
       expect(generate(ast, code)).toEqual(
-        "function func(yyy) {\n  return yyy;\n}\n",
+        "function func(yyy) {\n  return yyy\n}\n",
       )
     })
-  })
 
-  describe("renameFunction", () => {
     it("renames function declarations", () => {
-      const code = "function xxx() {}; xxx();"
+      const code = "function xxx() {} xxx()"
       const ast = parse(code)
-      const path = getPathAtPosition(ast, { row: 0, column: 8 })
+      const path = getPathAtPosition(ast, { row: 0, column: 12 })
+      const identifierPath = path.find((p) => p.isIdentifier())
 
-      renameFunction(path, "yyy")
-      expect(generate(ast, code)).toEqual("function yyy() {}\nyyy();\n")
+      renameIdentifier(identifierPath, "yyy")
+      expect(generate(ast, code)).toEqual("function yyy() {}\nyyy()\n")
     })
   })
 
-  describe("statefulToStatelessComponent", () => {
-    it("transform statefulToStateless components", () => {
+  describe("statefulToStateless", () => {
+    it("transform simple components", () => {
       const code = "class X extends React.Component {}"
       const ast = parse(code)
+      const path = getPathAtPosition(ast, { row: 0, column: 7 })
 
-      statefulToStatelessComponent()
+      statefulToStateless(path.find((p) => p.isClassDeclaration()))
+      expect(generate(ast, code)).toEqual("const X = props => {}\n")
+    })
+
+    it("transform lifecycle methods", () => {
+      const code = `class X extends React.Component {
+             componentDidMount(){
+               console.log("mount")
+             }
+             componentWillUnmount(){
+               console.log("unmount")
+             }
+           }`
+      const ast = parse(code)
+      const path = getPathAtPosition(ast, { row: 0, column: 7 })
+
+      statefulToStateless(path.find((p) => p.isClassDeclaration()))
+      expect(generate(ast, code)).toEqual(`const X = props => {
+  useEffect(() => {
+    console.log("mount")
+    return () => {
+      console.log("unmount")
+    }
+  }, [])
+}
+`)
+    })
+
+    it("transform static props", () => {
+      const code = `class X extends React.Component {
+             static propTypes = { a: PropType.string.required }
+           }`
+      const ast = parse(code)
+      const path = getPathAtPosition(ast, { row: 1, column: 7 })
+
+      statefulToStateless(path.find((p) => p.isClassDeclaration()))
+      expect(generate(ast, code)).toEqual(`const X = props => {}
+X.propTypes = { a: PropType.string.required }
+`)
+    })
+
+    it("transforms decorators", () => {
+      const code = `@inject("x") @observer
+          class X extends React.Component {
+          }`
+      const ast = parse(code)
+      const path = getPathAtPosition(ast, { row: 1, column: 7 })
+
+      statefulToStateless(path.find((p) => p.isClassDeclaration()))
+      expect(generate(ast, code)).toEqual("const X = observer(inject(\"x\")(props => {}))\n")
+    })
+
+    it("preseves export", () => {
+      const code = `export class X extends React.Component {
+          }`
+      const ast = parse(code)
+      const path = getPathAtPosition(ast, { row: 0, column: 14 })
+
+      statefulToStateless(path.find((p) => p.isClassDeclaration()))
+      expect(generate(ast, code)).toEqual("export const X = props => {}\n")
+    })
+
+    it("preseves default export", () => {
+      const code = `export default class X extends React.Component {
+          }`
+      const ast = parse(code)
+      const path = getPathAtPosition(ast, { row: 0, column: 22 })
+
+      statefulToStateless(path.find((p) => p.isClassDeclaration()))
+
+      expect(generate(ast, code)).toEqual("const X = props => {}\nexport default X\n")
+    })
+
+    it("transforms render", () => {
+      const code = `class X extends React.Component {
+            render(){
+              const {a} = this.props
+              return a
+            }
+          }`
+      const ast = parse(code)
+      const path = getPathAtPosition(ast, { row: 0, column: 7 })
+
+      statefulToStateless(path.find((p) => p.isClassDeclaration()))
+      expect(generate(ast, code)).toEqual(`const X = props => {
+  const { a } = props
+  return a
+}
+`)
+    })
+
+    it("keeps methods", () => {
+      const code = `class X extends React.Component {
+            handleClick(){
+              console.log("click")
+            }
+          }`
+      const ast = parse(code)
+      const path = getPathAtPosition(ast, { row: 0, column: 7 })
+
+      statefulToStateless(path.find((p) => p.isClassDeclaration()))
+      expect(generate(ast, code)).toEqual(`const X = props => {
+  const handleClick = () => {
+    console.log("click")
+  }
+}
+`)
     })
   })
 })

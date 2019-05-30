@@ -14,14 +14,17 @@
     "@babel/generator": "^7.4.4",
     "@babel/helper-builder-react-jsx": "^7.3.0",
     "@babel/helper-module-imports": "^7.0.0",
+    "@babel/helper-module-transforms": "^7.4.4",
     "@babel/helper-plugin-utils": "^7.0.0",
+    "@babel/helper-split-export-declaration": "^7.4.4",
+    "@babel/helper-wrap-function": "^7.2.0",
     "@babel/parser": "^7.4.5",
     "@babel/template": "^7.4.4",
     "@babel/traverse": "^7.4.5",
     "@babel/types": "^7.4.4",
     "atom-package-deps": "^5.1.0",
     "atom-space-pen-views": "^2.2.0",
-    "babylon": "^6.18.0",
+    "prettier": "^1.17.1",
     "space-pen": "^5.1.2"
   },
   "package-deps": [
@@ -62,9 +65,9 @@
     "eslint": "^5.16.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-jest": "^22.6.4",
     "eslint-plugin-react": "^7.13.0",
     "expect": "^24.8.0",
-    "jest": "^24.8.0",
-    "prettier": "^1.17.1"
+    "jest": "^24.8.0"
   }
 }
