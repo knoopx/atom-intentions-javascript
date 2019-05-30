@@ -41,7 +41,7 @@ class X extends React.PureComponent {
   }
 }
 
-export default () => <Y/>
+export default () => <X/>
 `
 
     const ast = parse(code)
@@ -57,7 +57,7 @@ export default () => <Y/>
 
     expect(generate(ast, code)).toEqual(`import X from "./X.js"
 
-export default () => <Y />
+export default () => <X />
 `)
     expect(generate(moduleAst, code)).toEqual(`import React from "react"
 class X extends React.PureComponent {
