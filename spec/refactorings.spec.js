@@ -126,7 +126,7 @@ export default X
     })
 
     it("transform lifecycle methods", () => {
-      const code = `class X extends React.Component {
+      const code = `import React from "react"\nclass X extends React.Component {
              componentDidMount(){
                console.log("mount")
              }
@@ -135,10 +135,10 @@ export default X
              }
            }`
       const ast = parse(code)
-      const path = getPathAtPosition(ast, { row: 0, column: 7 })
+      const path = getPathAtPosition(ast, { row: 1, column: 7 })
 
       statefulToStateless(path.find((p) => p.isClassDeclaration()))
-      expect(generate(ast, code)).toEqual(`const X = props => {
+      expect(generate(ast, code)).toEqual(`import React, { useEffect } from "react"\nconst X = props => {
   useEffect(() => {
     console.log("mount")
     return () => {
