@@ -3,8 +3,7 @@ import {
   generate,
   getPathAtPosition,
   renameIdentifier,
-  extractVariableIntoModule,
-  extractClassIntoModule,
+  extractIntoModule,
   deanonymifyClassDeclaration,
   statefulToStateless,
 } from "../lib/refactorings"
@@ -14,59 +13,65 @@ describe("refactorings", () => {
     const code = "const xxx = 1"
 
     const ast = parse(code)
+    const cursorPath = getPathAtPosition(ast, { row: 0, column: 6 })
+    const path = cursorPath.find((p) => p.isClassDeclaration() || p.isFunctionDeclaration() || p.isVariableDeclarator())
 
-    const moduleAst = await extractVariableIntoModule(
-      ast,
-      {
-        row: 0,
-        column: 8,
-      },
-      (name) => `./${name}.js`,
-    )
+    const moduleAst = await extractIntoModule(path, (name) => `./${name}.js`)
 
-    expect(generate(ast, code)).toEqual('import xxx from "./xxx.js"\n')
+    expect(generate(ast, code)).toEqual('import xxx from "./xxx"\n')
     expect(generate(moduleAst, code)).toEqual(
       "const xxx = 1\nexport default xxx\n",
     )
     done()
   })
 
+  it("extractVariableIntoModule", async (done) => {
+    const code = "function x() {}"
+
+    const ast = parse(code)
+    const path = getPathAtPosition(ast, { row: 0, column: 11 })
+    const moduleAst = await extractIntoModule(path, (name) => `./${name}.js`)
+
+    expect(generate(ast, code)).toEqual('import x from "./x"\n')
+    expect(generate(moduleAst, code)).toEqual(
+      "export default function x() {}\n",
+    )
+    done()
+  })
+
   it("extractClassIntoModule", async (done) => {
     const code = `import React from 'react'
+import Z from 'z'
 class X extends React.PureComponent {
   render() {
     return (
-      <div />
+      <Z />
     )
   }
 }
 
 export default () => <X/>
 `
-
     const ast = parse(code)
+    const cursorPath = getPathAtPosition(ast, { row: 2, column: 6 })
+    const path = cursorPath.find((n) => n.isClassDeclaration() || n.isFunctionDeclaration())
+    const moduleAst = await extractIntoModule(path, (name) => `./${name}.js`)
 
-    const moduleAst = await extractClassIntoModule(
-      ast,
-      {
-        row: 1,
-        column: 7,
-      },
-      (name) => `./${name}.js`,
-    )
-
-    expect(generate(ast, code)).toEqual(`import X from "./X.js"
+    expect(generate(ast, code)).toEqual(`import X from "./X"
+import React from "react"
+import Z from "z"
 
 export default () => <X />
 `)
     expect(generate(moduleAst, code)).toEqual(`import React from "react"
-class X extends React.PureComponent {
+import Z from "z"
+export default class X extends React.PureComponent {
   render() {
-    return <div />
+    return <Z />
   }
 }
-export default X
 `)
+
     done()
   })
 
