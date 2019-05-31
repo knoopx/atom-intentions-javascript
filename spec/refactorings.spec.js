@@ -4,11 +4,31 @@ import {
   getPathAtPosition,
   renameIdentifier,
   extractIntoModule,
+  functionToArrowFunction,
   deanonymifyClassDeclaration,
   statefulToStateless,
 } from "../lib/refactorings"
 
 describe("refactorings", () => {
+  it("functionToArrow", () => {
+    const code = `
+function x(a, ...args) {
+  console.log("hello")
+}
+    `
+    const ast = parse(code)
+
+    const cursorPath = getPathAtPosition(ast, { row: 1, column: 10 })
+    const path = cursorPath.find((p) => p.isFunctionDeclaration())
+
+    functionToArrowFunction(path)
+
+    expect(generate(ast, code)).toEqual(`const x = (a, ...args) => {
+  console.log("hello")
+}
+`)
+  })
+
   it("extractVariableIntoModule", async (done) => {
     const code = "const xxx = 1"
 
