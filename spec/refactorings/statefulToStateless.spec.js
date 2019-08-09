@@ -41,7 +41,7 @@ describe("refactorings", () => {
 }`)
     })
 
-    it("transforms class props", () => {
+    it("transforms decorated class props", () => {
       const code = `class X extends React.Component { @observable propName = {} }`
       const ast = parse(code)
       const path = getPathAtIndex(ast, 7)
@@ -49,6 +49,17 @@ describe("refactorings", () => {
       statefulToStateless(path.find((p) => p.isClassDeclaration()))
       expect(generate(ast)).toEqual(`const X = props => {
   const propName = observable({})
+}`)
+    })
+
+    it("transforms empty decorated class props", () => {
+      const code = `class X extends React.Component { @observable propName }`
+      const ast = parse(code)
+      const path = getPathAtIndex(ast, 7)
+
+      statefulToStateless(path.find((p) => p.isClassDeclaration()))
+      expect(generate(ast)).toEqual(`const X = props => {
+  const propName = observable()
 }`)
     })
 

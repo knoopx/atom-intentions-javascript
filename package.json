@@ -23,6 +23,8 @@
     "@babel/types": "^7.5.5",
     "atom-package-deps": "^5.1.0",
     "atom-space-pen-views": "^2.2.0",
+    "babel-eslint": "^10.0.2",
+    "eslint": "^6.1.0",
     "recast": "0.18.1",
     "space-pen": "^5.1.2"
   },

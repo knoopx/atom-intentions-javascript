@@ -18,11 +18,11 @@ describe("helpers", () => {
       },
     })
 
-    expect(generate(ast)).toEqual('import React from "react"\n')
+    expect(generate(ast)).toEqual('import React from "react"')
   })
 
   it("adds imports", () => {
-    const code = "import {useEffect} from 'react'"
+    const code = 'import {useEffect} from "react"'
     const ast = parse(code)
 
     traverse(ast, {
@@ -31,7 +31,7 @@ describe("helpers", () => {
       },
     })
 
-    expect(generate(ast)).toEqual('import React, { useEffect } from "react"\n')
+    expect(generate(ast)).toEqual('import React, { useEffect } from "react"')
   })
 
   it("adds imports", () => {
@@ -44,11 +44,11 @@ describe("helpers", () => {
       },
     })
 
-    expect(generate(ast)).toEqual('import { useEffect } from "react"\n')
+    expect(generate(ast)).toEqual('import { useEffect } from "react"')
   })
 
   it("modifies existing imports", () => {
-    const code = "import React from 'react'"
+    const code = 'import React from "react"'
     const ast = parse(code)
 
     traverse(ast, {
@@ -58,12 +58,11 @@ describe("helpers", () => {
     })
 
     expect(generate(ast)).toEqual(`import React from "react"
-import { map } from "lodash"
-`)
+import { map } from "lodash"`)
   })
 
   it("modifies existing imports", () => {
-    const code = "import React from 'react'"
+    const code = 'import React from "react"'
     const ast = parse(code)
 
     traverse(ast, {
@@ -72,6 +71,6 @@ import { map } from "lodash"
       },
     })
 
-    expect(generate(ast)).toEqual('import React, { useEffect } from "react"\n')
+    expect(generate(ast)).toEqual('import React, { useEffect } from "react"')
   })
 })
