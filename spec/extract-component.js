@@ -4,7 +4,7 @@ import {
   parse,
   generate,
   getPathAtPosition,
-  renameIdentifier,
+  aliasIdentifier,
   extractIntoModule,
   deanonymifyClassDeclaration,
   statefulToStateless,

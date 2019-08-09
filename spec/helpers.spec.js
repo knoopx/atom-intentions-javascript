@@ -18,7 +18,7 @@ describe("helpers", () => {
       },
     })
 
-    expect(generate(ast, code)).toEqual("import React from \"react\"\n")
+    expect(generate(ast)).toEqual('import React from "react"\n')
   })
 
   it("adds imports", () => {
@@ -31,7 +31,7 @@ describe("helpers", () => {
       },
     })
 
-    expect(generate(ast, code)).toEqual("import React, { useEffect } from \"react\"\n")
+    expect(generate(ast)).toEqual('import React, { useEffect } from "react"\n')
   })
 
   it("adds imports", () => {
@@ -44,7 +44,7 @@ describe("helpers", () => {
       },
     })
 
-    expect(generate(ast, code)).toEqual("import { useEffect } from \"react\"\n")
+    expect(generate(ast)).toEqual('import { useEffect } from "react"\n')
   })
 
   it("modifies existing imports", () => {
@@ -57,7 +57,7 @@ describe("helpers", () => {
       },
     })
 
-    expect(generate(ast, code)).toEqual(`import React from "react"
+    expect(generate(ast)).toEqual(`import React from "react"
 import { map } from "lodash"
 `)
   })
@@ -72,6 +72,6 @@ import { map } from "lodash"
       },
     })
 
-    expect(generate(ast, code)).toEqual("import React, { useEffect } from \"react\"\n")
+    expect(generate(ast)).toEqual('import React, { useEffect } from "react"\n')
   })
 })

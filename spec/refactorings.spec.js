@@ -2,11 +2,12 @@ import {
   parse,
   generate,
   getPathAtPosition,
-  renameIdentifier,
+  aliasIdentifier,
   extractIntoModule,
   functionToArrowFunction,
   deanonymifyClassDeclaration,
   statefulToStateless,
+  sortKeys,
 } from "../lib/refactorings"
 
 describe("refactorings", () => {
@@ -23,7 +24,7 @@ function x(a, ...args) {
 
     functionToArrowFunction(path)
 
-    expect(generate(ast, code)).toEqual(`const x = (a, ...args) => {
+    expect(generate(ast)).toEqual(`const x = (a, ...args) => {
   console.log("hello")
 }
 `)
@@ -34,14 +35,17 @@ function x(a, ...args) {
 
     const ast = parse(code)
     const cursorPath = getPathAtPosition(ast, { row: 0, column: 6 })
-    const path = cursorPath.find((p) => p.isClassDeclaration() || p.isFunctionDeclaration() || p.isVariableDeclarator())
+    const path = cursorPath.find(
+      (p) =>
+        p.isClassDeclaration() ||
+        p.isFunctionDeclaration() ||
+        p.isVariableDeclarator(),
+    )
 
     const moduleAst = await extractIntoModule(path, (name) => `./${name}.js`)
 
-    expect(generate(ast, code)).toEqual('import xxx from "./xxx"\n')
-    expect(generate(moduleAst, code)).toEqual(
-      "const xxx = 1\nexport default xxx\n",
-    )
+    expect(generate(ast)).toEqual('import xxx from "./xxx"\n')
+    expect(generate(moduleAst)).toEqual("const xxx = 1\nexport default xxx\n")
     done()
   })
 
@@ -52,10 +56,8 @@ function x(a, ...args) {
     const path = getPathAtPosition(ast, { row: 0, column: 11 })
     const moduleAst = await extractIntoModule(path, (name) => `./${name}.js`)
 
-    expect(generate(ast, code)).toEqual('import x from "./x"\n')
-    expect(generate(moduleAst, code)).toEqual(
-      "export default function x() {}\n",
-    )
+    expect(generate(ast)).toEqual('import x from "./x"\n')
+    expect(generate(moduleAst)).toEqual("export default function x() {}\n")
     done()
   })
 
@@ -74,16 +76,18 @@ export default () => <X/>
 `
     const ast = parse(code)
     const cursorPath = getPathAtPosition(ast, { row: 2, column: 6 })
-    const path = cursorPath.find((n) => n.isClassDeclaration() || n.isFunctionDeclaration())
+    const path = cursorPath.find(
+      (n) => n.isClassDeclaration() || n.isFunctionDeclaration(),
+    )
     const moduleAst = await extractIntoModule(path, (name) => `./${name}.js`)
 
-    expect(generate(ast, code)).toEqual(`import X from "./X"
+    expect(generate(ast)).toEqual(`import X from "./X"
 import React from "react"
 import Z from "z"
 
 export default () => <X />
 `)
-    expect(generate(moduleAst, code)).toEqual(`import React from "react"
+    expect(generate(moduleAst)).toEqual(`import React from "react"
 import Z from "z"
 export default class X extends React.PureComponent {
   render() {
@@ -102,19 +106,30 @@ export default class X extends React.PureComponent {
       const path = getPathAtPosition(ast, { row: 0, column: 7 })
 
       deanonymifyClassDeclaration(path)
-      expect(generate(ast, code)).toEqual("class X {}\n")
+      expect(generate(ast)).toEqual("class X {}\n")
     })
   })
 
-  describe("renameIdentifier", () => {
+  describe("sortKeys", () => {
+    it("sorts object keys", () => {
+      const code = "const x = {b: 2, a: 1}"
+      const ast = parse(code)
+      const path = getPathAtPosition(ast, { row: 0, column: 14 })
+
+      sortKeys(path.find((n) => n.isObjectExpression()))
+      expect(generate(ast)).toEqual("const x = { a: 1, b: 2 }\n")
+    })
+  })
+
+  describe("aliasIdentifier", () => {
     it("renames variable declarations", () => {
       const code = "const xxx = 1\nconsole.log(xxx)"
       const ast = parse(code)
       const path = getPathAtPosition(ast, { row: 0, column: 8 })
       const identifierPath = path.find((p) => p.isIdentifier())
 
-      renameIdentifier(identifierPath, "yyy")
-      expect(generate(ast, code)).toEqual("const yyy = 1\nconsole.log(yyy)\n")
+      aliasIdentifier(identifierPath, "yyy")
+      expect(generate(ast)).toEqual("const yyy = 1\nconsole.log(yyy)\n")
     })
 
     it("renames local variable declarations", () => {
@@ -123,10 +138,8 @@ export default class X extends React.PureComponent {
       const path = getPathAtPosition(ast, { row: 0, column: 15 })
       const identifierPath = path.find((p) => p.isIdentifier())
 
-      renameIdentifier(identifierPath, "yyy")
-      expect(generate(ast, code)).toEqual(
-        "function func(yyy) {\n  return yyy\n}\n",
-      )
+      aliasIdentifier(identifierPath, "yyy")
+      expect(generate(ast)).toEqual("function func(yyy) {\n  return yyy\n}\n")
     })
 
     it("renames function declarations", () => {
@@ -135,8 +148,8 @@ export default class X extends React.PureComponent {
       const path = getPathAtPosition(ast, { row: 0, column: 12 })
       const identifierPath = path.find((p) => p.isIdentifier())
 
-      renameIdentifier(identifierPath, "yyy")
-      expect(generate(ast, code)).toEqual("function yyy() {}\nyyy()\n")
+      aliasIdentifier(identifierPath, "yyy")
+      expect(generate(ast)).toEqual("function yyy() {}\nyyy()\n")
     })
   })
 
@@ -147,7 +160,7 @@ export default class X extends React.PureComponent {
       const path = getPathAtPosition(ast, { row: 0, column: 7 })
 
       statefulToStateless(path.find((p) => p.isClassDeclaration()))
-      expect(generate(ast, code)).toEqual("const X = props => {}\n")
+      expect(generate(ast)).toEqual("const X = props => {}\n")
     })
 
     it("transform lifecycle methods", () => {
@@ -163,7 +176,8 @@ export default class X extends React.PureComponent {
       const path = getPathAtPosition(ast, { row: 1, column: 7 })
 
       statefulToStateless(path.find((p) => p.isClassDeclaration()))
-      expect(generate(ast, code)).toEqual(`import React, { useEffect } from "react"\nconst X = props => {
+      expect(generate(ast))
+        .toEqual(`import React, { useEffect } from "react"\nconst X = props => {
   useEffect(() => {
     console.log("mount")
     return () => {
@@ -182,7 +196,7 @@ export default class X extends React.PureComponent {
       const path = getPathAtPosition(ast, { row: 1, column: 7 })
 
       statefulToStateless(path.find((p) => p.isClassDeclaration()))
-      expect(generate(ast, code)).toEqual(`const X = props => {}
+      expect(generate(ast)).toEqual(`const X = props => {}
 X.propTypes = { a: PropType.string.required }
 `)
     })
@@ -195,7 +209,9 @@ X.propTypes = { a: PropType.string.required }
       const path = getPathAtPosition(ast, { row: 1, column: 7 })
 
       statefulToStateless(path.find((p) => p.isClassDeclaration()))
-      expect(generate(ast, code)).toEqual("const X = observer(inject(\"x\")(props => {}))\n")
+      expect(generate(ast)).toEqual(
+        'const X = inject("x")(observer(props => {}))\n',
+      )
     })
 
     it("preseves export", () => {
@@ -205,7 +221,7 @@ X.propTypes = { a: PropType.string.required }
       const path = getPathAtPosition(ast, { row: 0, column: 14 })
 
       statefulToStateless(path.find((p) => p.isClassDeclaration()))
-      expect(generate(ast, code)).toEqual("export const X = props => {}\n")
+      expect(generate(ast)).toEqual("export const X = props => {}\n")
     })
 
     it("preseves default export", () => {
@@ -216,7 +232,7 @@ X.propTypes = { a: PropType.string.required }
 
       statefulToStateless(path.find((p) => p.isClassDeclaration()))
 
-      expect(generate(ast, code)).toEqual("const X = props => {}\nexport default X\n")
+      expect(generate(ast)).toEqual("const X = props => {}\nexport default X\n")
     })
 
     it("transforms render", () => {
@@ -230,7 +246,7 @@ X.propTypes = { a: PropType.string.required }
       const path = getPathAtPosition(ast, { row: 0, column: 7 })
 
       statefulToStateless(path.find((p) => p.isClassDeclaration()))
-      expect(generate(ast, code)).toEqual(`const X = props => {
+      expect(generate(ast)).toEqual(`const X = props => {
   const { a } = props
   return a
 }
@@ -247,7 +263,7 @@ X.propTypes = { a: PropType.string.required }
       const path = getPathAtPosition(ast, { row: 0, column: 7 })
 
       statefulToStateless(path.find((p) => p.isClassDeclaration()))
-      expect(generate(ast, code)).toEqual(`const X = props => {
+      expect(generate(ast)).toEqual(`const X = props => {
   const handleClick = () => {
     console.log("click")
   }
