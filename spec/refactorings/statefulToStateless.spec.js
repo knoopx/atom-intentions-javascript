@@ -41,6 +41,17 @@ describe("refactorings", () => {
 }`)
     })
 
+    it("transforms class props", () => {
+      const code = `class X extends React.Component { @observable propName = {} }`
+      const ast = parse(code)
+      const path = getPathAtIndex(ast, 7)
+
+      statefulToStateless(path.find((p) => p.isClassDeclaration()))
+      expect(generate(ast)).toEqual(`const X = props => {
+  const propName = observable({})
+}`)
+    })
+
     it("transform static props", () => {
       const code = `class X extends React.Component {
              static propTypes = { a: PropType.string.required }

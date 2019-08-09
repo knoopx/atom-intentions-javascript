@@ -43,8 +43,8 @@ describe("refactorings", () => {
     })
 
     it("classes", async (done) => {
-      const code = `import React from 'react'
-import Z from 'z'
+      const code = `import React from "react"
+import Z from "z"
 class X extends React.PureComponent {
   render() {
     return (
@@ -53,8 +53,7 @@ class X extends React.PureComponent {
   }
 }
 
-export default () => <X/>
-`
+export default () => <X />`
       const ast = parse(code)
       const cursorPath = getPathAtIndex(ast, 51)
       const path = cursorPath.find(
@@ -66,13 +65,15 @@ export default () => <X/>
 import React from "react"
 import Z from "z"
 
-export default () => <X />
-`)
+export default () => <X />`)
       expect(generate(moduleAst)).toEqual(`import React from "react"
 import Z from "z"
+
 export default class X extends React.PureComponent {
   render() {
-    return <Z />
+    return (
+      <Z />
+    )
   }
 }`)
 
