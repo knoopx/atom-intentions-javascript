@@ -1,0 +1,4 @@
+{
+  "extends": ["eslint-config-knoopx", "plugin:jest/recommended"],
+  "settings": { "import/resolver": "node" }
+}

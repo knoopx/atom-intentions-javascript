@@ -25,7 +25,7 @@
     "atom-space-pen-views": "^2.2.0",
     "babel-eslint": "^10.0.2",
     "eslint": "^6.1.0",
-    "recast": "0.18.1",
+    "recast": "0.18.2",
     "space-pen": "^5.1.2"
   },
   "package-deps": [
@@ -62,6 +62,9 @@
     "@babel/plugin-syntax-import-meta": "^7.0.0",
     "@babel/preset-env": "^7.5.5",
     "babel-jest": "^24.8.0",
+    "eslint-config-knoopx": "knoopx/eslint-config-knoopx",
+    "eslint-import-resolver-node": "^0.3.2",
+    "eslint-plugin-jest": "^22.15.0",
     "expect": "^24.8.0",
     "jest": "^24.8.0"
   }

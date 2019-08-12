@@ -2,11 +2,7 @@ import {
   parse,
   generate,
   getPathAtIndex,
-  aliasIdentifier,
   extractIntoModule,
-  functionToArrowFunction,
-  deanonymifyClassDeclaration,
-  sortKeys,
 } from "../../lib/refactorings"
 
 describe("refactorings", () => {

@@ -21,7 +21,7 @@ describe("helpers", () => {
     expect(generate(ast)).toEqual('import React from "react"')
   })
 
-  it("adds imports", () => {
+  it("prepends default imports", () => {
     const code = 'import {useEffect} from "react"'
     const ast = parse(code)
 
@@ -34,7 +34,7 @@ describe("helpers", () => {
     expect(generate(ast)).toEqual('import React, { useEffect } from "react"')
   })
 
-  it("adds imports", () => {
+  it("adds named imports", () => {
     const code = ""
     const ast = parse(code)
 
@@ -47,7 +47,7 @@ describe("helpers", () => {
     expect(generate(ast)).toEqual('import { useEffect } from "react"')
   })
 
-  it("modifies existing imports", () => {
+  it("keeps existing imports", () => {
     const code = 'import React from "react"'
     const ast = parse(code)
 
@@ -61,7 +61,7 @@ describe("helpers", () => {
 import { map } from "lodash"`)
   })
 
-  it("modifies existing imports", () => {
+  it("appends named imports", () => {
     const code = 'import React from "react"'
     const ast = parse(code)
 
