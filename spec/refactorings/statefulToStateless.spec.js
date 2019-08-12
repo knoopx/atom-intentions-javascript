@@ -18,13 +18,13 @@ describe("refactorings", () => {
 
     it("transform lifecycle methods", () => {
       const code = `import React from "react"\nclass X extends React.Component {
-             componentDidMount(){
-               console.log("mount")
-             }
-             componentWillUnmount(){
-               console.log("unmount")
-             }
-           }`
+                 componentDidMount(){
+                   console.log("mount")
+                 }
+                 componentWillUnmount(){
+                   console.log("unmount")
+                 }
+               }`
       const ast = parse(code)
       const path = getPathAtIndex(ast, 30)
 
@@ -65,8 +65,8 @@ describe("refactorings", () => {
 
     it("transform static props", () => {
       const code = `class X extends React.Component {
-             static propTypes = { a: PropType.string.required }
-           }`
+                 static propTypes = { a: PropType.string.required }
+               }`
       const ast = parse(code)
       const path = getPathAtIndex(ast, 7)
 
@@ -77,14 +77,27 @@ X.propTypes = { a: PropType.string.required }`)
 
     it("transforms decorators", () => {
       const code = `@inject("x") @observer
-          class X extends React.Component {
-          }`
+              class X extends React.Component {
+              }`
       const ast = parse(code)
       const path = getPathAtIndex(ast, 7)
 
       statefulToStateless(path.find((p) => p.isClassDeclaration()))
       expect(generate(ast)).toEqual(
         'const X = inject("x")(observer(props => {}))',
+      )
+    })
+
+    it("splits default export decorators", () => {
+      const code = `@observer
+          export default class X extends React.Component {
+          }`
+      const ast = parse(code)
+      const path = getPathAtIndex(ast, 7)
+
+      statefulToStateless(path.find((p) => p.isClassDeclaration()))
+      expect(generate(ast)).toEqual(
+        "const X = props => {}\nexport default observer(X)",
       )
     })
 
@@ -99,7 +112,7 @@ X.propTypes = { a: PropType.string.required }`)
 
     it("preseves default export", () => {
       const code = `export default class X extends React.Component {
-          }`
+              }`
       const ast = parse(code)
       const path = getPathAtIndex(ast, 22)
 
@@ -110,11 +123,11 @@ X.propTypes = { a: PropType.string.required }`)
 
     it("transforms render", () => {
       const code = `class X extends React.Component {
-            render(){
-              const {a} = this.props
-              return a
-            }
-          }`
+  render(){
+    const {a} = this.props
+    return a
+  }
+}`
       const ast = parse(code)
       const path = getPathAtIndex(ast, 7)
 
@@ -127,10 +140,10 @@ X.propTypes = { a: PropType.string.required }`)
 
     it("keeps methods", () => {
       const code = `class X extends React.Component {
-            handleClick(e){
-              console.log("click")
-            }
-          }`
+  handleClick(e){
+    console.log("click")
+  }
+}`
       const ast = parse(code)
       const path = getPathAtIndex(ast, 3)
 
