@@ -2,18 +2,18 @@ import {
   parse,
   generate,
   getPathAtIndex,
-  aliasIdentifier,
+  renameIdentifier,
 } from "../../lib/refactorings"
 
 describe("refactorings", () => {
-  describe("aliasIdentifier", () => {
+  describe("renameIdentifier", () => {
     it("renames variable declarations", () => {
       const code = "const xxx = 1\nconsole.log(xxx)"
       const ast = parse(code)
       const path = getPathAtIndex(ast, 8)
       const identifierPath = path.find((p) => p.isIdentifier())
 
-      aliasIdentifier(identifierPath, "yyy")
+      renameIdentifier(identifierPath, "yyy")
       expect(generate(ast)).toEqual("const yyy = 1\nconsole.log(yyy)")
     })
 
@@ -23,7 +23,7 @@ describe("refactorings", () => {
       const path = getPathAtIndex(ast, 15)
       const identifierPath = path.find((p) => p.isIdentifier())
 
-      aliasIdentifier(identifierPath, "yyy")
+      renameIdentifier(identifierPath, "yyy")
       expect(generate(ast)).toEqual("function func(yyy) { return yyy }")
     })
 
@@ -33,7 +33,7 @@ describe("refactorings", () => {
       const path = getPathAtIndex(ast, 12)
       const identifierPath = path.find((p) => p.isIdentifier())
 
-      aliasIdentifier(identifierPath, "yyy")
+      renameIdentifier(identifierPath, "yyy")
       expect(generate(ast)).toEqual("function yyy() {} yyy()")
     })
   })
