@@ -88,13 +88,13 @@
   input: |
     <<class>> X extends React.Component {
       render(){
-        const {a} = this.props
+        const { a } = this.props
         return a
       }
     }
   output: |
     const X = props => {
-      const {a} = props
+      const { a } = props
       return a
     }
 

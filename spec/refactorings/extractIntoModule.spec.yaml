@@ -1,0 +1,41 @@
+- name: variables
+  arguments:
+    - xxx
+  input: |
+    const <<xxx>> = 1
+  output: |
+    import xxx from "xxx"
+  generates: |-
+    const xxx = 1
+    export default xxx
+
+- name: functions
+  arguments:
+    - x
+  input: |
+    function <<x>>() {}
+
+  output: |
+    import x from "x"
+  generates: |-
+    export default function x() {}
+
+- name: components
+  arguments:
+    - ./List
+  input: |
+    import React from "react"
+    const Item = () => <div />
+    const <<List>> = () => <Item />
+    const Layout = () => <List/>
+    export default Layout
+  output: |
+    import React from "react"
+    import List from "./List"
+    const Layout = () => <List/>
+    export default Layout
+  generates: |-
+    import React from "react"
+    const Item = () => <div />
+    const List = () => <Item />
+    export default List

@@ -35,8 +35,11 @@ describe("refactorings", () => {
             expect(position).not.toBeNull()
             const ast = parse(input)
             const astPath = getPathAtIndex(ast, position)
-            module(astPath, ...(spec.arguments || []))
+            const result = module(astPath, ...(spec.arguments || []))
             expect(generate(ast)).toEqual(spec.output)
+            if (spec.generates) {
+              expect(generate(result)).toEqual(spec.generates)
+            }
           })
         })
       })
