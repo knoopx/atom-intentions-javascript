@@ -1,0 +1,5 @@
+- name: sortArrayValues
+  input: |
+    const x = <<['c', 'b', 'd', 'a']>>
+  output: |
+    const x = ['a', 'b', 'c', 'd']

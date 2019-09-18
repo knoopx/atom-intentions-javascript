@@ -1,0 +1,113 @@
+- name: transforms simple components
+  input: |
+    <<class>> X extends React.Component {}
+  output: |
+    const X = props => {}
+
+- name: transforms lifecycle methods
+  input: |
+    import React from "react"
+    <<class>> X extends React.Component {
+      componentDidMount(){
+       console.log("mount")
+      }
+      componentWillUnmount(){
+       console.log("unmount")
+      }
+    }
+  output: |
+    import React, { useEffect } from "react"
+
+    const X = props => {
+     useEffect(() => {
+      console.log("mount")
+
+      return () => {
+       console.log("unmount")
+      }
+     }, [])
+    }
+
+- name: transforms decorated class props
+  input: |
+    <<class>> X extends React.Component { @observable propName = {} }
+  output: |
+    const X = props => {
+      const propName = observable({})
+    }
+
+- name: transforms empty decorated class props
+  input: |
+    <<class>> X extends React.Component { @observable propName }
+  output: |
+    const X = props => {
+      const propName = observable()
+    }
+
+- name: transforms static props
+  input: |
+    <<class>> X extends React.Component {
+      static propTypes = { a: PropType.string.required }
+    }
+  output: |
+    const X = props => {}
+    X.propTypes = { a: PropType.string.required }
+
+
+- name: transforms class decorators
+  input: |
+    @inject("x") @observer
+    <<class>> X extends React.Component {
+    }
+  output: |
+    const X = inject("x")(observer(props => {}))
+
+- name: splits default export decorators
+  input: |
+    @observer
+    export default <<class>> X extends React.Component {
+    }
+  output: |
+    const X = props => {}
+    export default observer(X)
+
+- name: preserves export
+  input: |
+    export <<class>> X extends React.Component {}
+  output: |
+    export const X = props => {}
+
+- name: preseves default export
+  input: |
+    export default <<class>> X extends React.Component {}
+  output: |
+    const X = props => {}
+    export default X
+
+- name: transforms render
+  input: |
+    <<class>> X extends React.Component {
+      render(){
+        const {a} = this.props
+        return a
+      }
+    }
+  output: |
+    const X = props => {
+      const {a} = props
+      return a
+    }
+
+- name: keeps methods
+  input: |
+    <<class>> X extends React.Component {
+      handleClick(e){
+        console.log("click")
+      }
+    }
+  output: |
+    const X = props => {
+      const handleClick = e => {
+        console.log("click")
+      }
+    }

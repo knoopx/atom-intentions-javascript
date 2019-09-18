@@ -1,0 +1,29 @@
+- name: transforms default imports
+  input: |
+    <<import>> React from 'react'
+  output: |
+    const React = require('react')
+
+- name: transforms named imports
+  input: |
+    <<import>> { useState } from 'react'
+  output: |
+    const {
+      useState
+    } = require('react')
+
+- name: transforms namespace imports
+  input: |
+    <<import>> * as React from 'react'
+  output: |
+    const React = require('react')
+
+- name: transforms default imports, destructs named imports
+  input: |
+    <<import>> React, { useState } from 'react'
+  output: |
+    const React = require('react')
+    
+    const {
+      useState
+    } = React

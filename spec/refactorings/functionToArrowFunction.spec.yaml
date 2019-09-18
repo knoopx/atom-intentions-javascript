@@ -1,0 +1,5 @@
+- name: functionToArrow
+  input: |
+    <<function>> x(a, ...args) { console.log("hello") }
+  output: |
+    const x = (a, ...args) => { console.log("hello") }

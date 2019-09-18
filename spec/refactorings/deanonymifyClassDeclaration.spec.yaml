@@ -1,0 +1,5 @@
+- name: deanonymifyClassDeclaration
+  input: |
+    const X = <<class>> {}
+  output: |
+    class X {}

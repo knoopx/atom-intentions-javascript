@@ -1,0 +1,5 @@
+- name: stringToTemplate
+  input: |
+    const x = <<'${value}'>>
+  output: |
+    const x = `${value}`

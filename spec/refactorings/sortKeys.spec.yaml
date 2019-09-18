@@ -1,0 +1,5 @@
+- name: sortKeys
+  input: |
+    const x = <<{b: 2, a: 1}>>
+  output: |
+    const x = {a: 1, b: 2}

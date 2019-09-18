@@ -1,0 +1,27 @@
+- name: renames variable declarations
+  arguments:
+    - yyy
+  input: |
+    const <<xxx>> = 1
+    console.log(xxx)
+  output: |
+    const yyy = 1
+    console.log(yyy)
+
+- name: renames local variable declarations
+  arguments:
+    - yyy
+  input: |
+    function func(xxx) { return <<xxx>> }
+  output: |
+    function func(yyy) { return yyy }
+
+- name: renames function declarations
+  arguments:
+    - yyy
+  input: |
+    function <<xxx>>() {}
+    xxx()
+  output: |
+    function yyy() {}
+    yyy()
