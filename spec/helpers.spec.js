@@ -5,72 +5,100 @@ import {
   generate,
   addDefaultImport,
   addNamedImport,
+  isUsingJSX,
 } from "../lib/refactorings/helpers"
 
 describe("helpers", () => {
-  it("adds imports", () => {
-    const code = ""
-    const ast = parse(code)
-
-    traverse(ast, {
-      Program(path) {
-        addDefaultImport(path, "React", "react")
-      },
+  describe("isUsingJSX", () => {
+    it("returns true", () => {
+      const ast = parse(`import React, {useRef} from "react"
+const x = () => <div />`)
+      traverse(ast, {
+        Program(path) {
+          const result = isUsingJSX(path)
+          expect(result).toBe(true)
+        },
+      })
     })
 
-    expect(generate(ast)).toEqual('import React from "react"')
+    it("returns false", () => {
+      const ast = parse(`const x = () => 42`)
+      traverse(ast, {
+        enter(path) {
+          const result = isUsingJSX(path)
+          expect(result).toBe(false)
+        },
+      })
+    })
   })
 
-  it("prepends default imports", () => {
-    const code = 'import {useEffect} from "react"'
-    const ast = parse(code)
+  describe("addDefaultImport", () => {
+    it("adds imports", () => {
+      const code = ""
+      const ast = parse(code)
 
-    traverse(ast, {
-      Program(path) {
-        addDefaultImport(path, "React", "react")
-      },
+      traverse(ast, {
+        Program(path) {
+          addDefaultImport(path, "React", "react")
+        },
+      })
+
+      expect(generate(ast)).toEqual('import React from "react"')
     })
 
-    expect(generate(ast)).toEqual('import React, { useEffect } from "react"')
+    it("prepends default imports", () => {
+      const code = 'import {useEffect} from "react"'
+      const ast = parse(code)
+
+      traverse(ast, {
+        Program(path) {
+          addDefaultImport(path, "React", "react")
+        },
+      })
+
+      expect(generate(ast)).toEqual('import React, { useEffect } from "react"')
+    })
   })
 
-  it("adds named imports", () => {
-    const code = ""
-    const ast = parse(code)
+  describe("addNamedImport", () => {
+    it("adds named imports", () => {
+      const code = ""
+      const ast = parse(code)
 
-    traverse(ast, {
-      Program(path) {
-        addNamedImport(path, "useEffect", "react")
-      },
+      traverse(ast, {
+        Program(path) {
+          addNamedImport(path, "useEffect", "react")
+        },
+      })
+
+      expect(generate(ast)).toEqual('import { useEffect } from "react"')
     })
 
-    expect(generate(ast)).toEqual('import { useEffect } from "react"')
-  })
+    it("keeps existing imports", () => {
+      const code = 'import React from "react"'
+      const ast = parse(code)
 
-  it("keeps existing imports", () => {
-    const code = 'import React from "react"'
-    const ast = parse(code)
+      traverse(ast, {
+        Program(path) {
+          addNamedImport(path, "map", "lodash")
+        },
+      })
 
-    traverse(ast, {
-      Program(path) {
-        addNamedImport(path, "map", "lodash")
-      },
-    })
-
-    expect(generate(ast)).toEqual(`import React from "react"
+      expect(generate(ast)).toEqual(`import React from "react"
 import { map } from "lodash"`)
-  })
-
-  it("appends named imports", () => {
-    const code = 'import React from "react"'
-    const ast = parse(code)
-
-    traverse(ast, {
-      Program(path) {
-        addNamedImport(path, "useEffect", "react")
-      },
     })
 
-    expect(generate(ast)).toEqual('import React, { useEffect } from "react"')
+    it("appends named imports", () => {
+      const code = 'import React from "react"'
+      const ast = parse(code)
+
+      traverse(ast, {
+        Program(path) {
+          addNamedImport(path, "useEffect", "react")
+        },
+      })
+
+      expect(generate(ast)).toEqual('import React, { useEffect } from "react"')
+    })
   })
 })

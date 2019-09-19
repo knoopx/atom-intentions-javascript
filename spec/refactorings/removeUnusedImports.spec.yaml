@@ -1,0 +1,38 @@
+- name: removes unused default imports
+  input: |
+    import a from "lib"
+    const x = () => 42
+  output: |
+    const x = () => 42
+
+- name: removes unused named imports
+  input: |
+    import {a, b} from "lib"
+    const x = () => b
+  output: |
+    import { b } from "lib"
+    const x = () => b
+
+- name: removes unused namespace imports
+  input: |
+    import * as a from "lib"
+    const x = () => 45
+  output: |
+    const x = () => 45
+
+- name: keeps React when using JSX
+  input: |
+    import React, {useRef} from "react"
+    const x = () => <div />
+  output: |
+    import React from "react"
+    const x = () => <div />
+
+
+- name: keeps imports without local identifiers
+  input: |
+    import "styles.css"
+    const x = () => 42
+  output: |
+    import "styles.css"
+    const x = () => 42

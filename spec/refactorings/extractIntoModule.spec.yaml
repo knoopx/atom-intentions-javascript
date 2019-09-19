@@ -39,3 +39,20 @@
     const Item = () => <div />
     const List = () => <Item />
     export default List
+
+
+- name: components
+  arguments:
+    - ./A
+  input: |
+    import React from "react"
+    const <<A>> = () => React.createElement("div")
+    const B = () => React.createElement(A)
+  output: |
+    import React from "react"
+    import A from "./A"
+    const B = () => React.createElement(A)
+  generates: |-
+    import React from "react"
+    const A = () => React.createElement("div")
+    export default A

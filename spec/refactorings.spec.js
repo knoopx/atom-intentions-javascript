@@ -1,5 +1,7 @@
 import { parse, generate, getPathAtIndex } from "../lib/refactorings"
 
+import { parseFixture } from "./helpers"
+
 const fs = require("fs")
 const path = require("path")
 
@@ -24,17 +26,7 @@ describe("refactorings", () => {
       describe(basename, () => {
         specs.forEach((spec) => {
           it(spec.name, () => {
-            let position
-            const input = spec.input.replace(
-              /<<([^>]+)>>/,
-              (match, capture, index) => {
-                position = index
-                return capture
-              },
-            )
-            expect(position).not.toBeNull()
-            const ast = parse(input)
-            const astPath = getPathAtIndex(ast, position)
+            const [ast, astPath] = parseFixture(spec.input)
             const result = module(astPath, ...(spec.arguments || []))
             expect(generate(ast)).toEqual(spec.output)
             if (spec.generates) {
